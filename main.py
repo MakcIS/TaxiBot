@@ -2,9 +2,12 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery, BotCommand
 from aiogram.filters import CommandStart
+from aiogram.fsm.storage.redis import Redis, RedisStorage 
+
 
 from config_data.settings import get_settings
 from handlers import client_handlers, driver_handlers
+
 
 async def set_main_menu(bot: Bot):
     commands = [BotCommand(command='/start', description='Погнали!'),
@@ -17,7 +20,7 @@ async def main():
     settings = get_settings()
 
     bot = Bot(settings.token)
-    dp = Dispatcher()
+    dp = Dispatcher(storage=RedisStorage(redis=Redis()))
 
 
     dp.startup.register(set_main_menu)
