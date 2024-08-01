@@ -4,6 +4,7 @@ from aiogram.filters import CommandStart, Command
 
 from keyboards import keyboards
 from lexicon.driver_lexicon import LEXICON
+from db_logic.logic import get_driver_info
 
 router = Router()
 router.message.filter(F.chat.id == -1002173740967)
@@ -21,7 +22,8 @@ async def process_help(message: Message):
 
 @router.callback_query(F.data == 'conform_order')
 async def process_conform_order(callback: CallbackQuery, bot: Bot):
-    await bot.send_message(chat_id=callback.message.external_reply.origin.sender_user.id, text=f'К вам выехал {callback.from_user.first_name}')
+    driver_info = await get_driver_info(callback.from_user.id)
+    await bot.send_message(chat_id=callback.message.external_reply.origin.sender_user.id, text=f'К вам выехал: {driver_info["name"]}\nАвтомобиль: {driver_info["car"]}\nЦвет: {driver_info["color"]}\nНомер: *{driver_info["licence_plate"]}**')
     await callback.answer()
 
 @router.callback_query()

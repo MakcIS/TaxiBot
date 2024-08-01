@@ -9,6 +9,7 @@ from aiogram.types import ReplyKeyboardRemove
 
 from keyboards import keyboards
 from lexicon.client_lexicon import LEXICON
+from db_logic.logic import create_new_order
 
 router = Router()
 
@@ -57,11 +58,24 @@ async def back_to_from(callback: CallbackQuery, state: FSMContext):
 async def to_input_process(message: Message, state: FSMContext, bot: Bot):
     await state.update_data(to_place=message.text)
     data = await state.get_data()
+    await message.answer(text=f'Проверьте правильность введённой информации:\nПоедем отсюда:{data["from_place"]}\nЕдем сюда:{data["to_place"]}', reply_markup=keyboards.cancel_back_conform_order_keyboard)
+    await state.set_state(FSMOrderTaxiProcess.check_order_data)
+
+#
+@router.callback_query(StateFilter(FSMOrderTaxiProcess.check_order_data), F.data == 'conform_order')
+async def check_order_process(callback: CallbackQuery, state: FSMContext, bot: Bot):    
+    data = await state.get_data()
+
+    await create_new_order(client_id=callback.from_user.id,
+                           client_address=data['from_place'],
+                           destination=data['to_place'])
+    
     await bot.send_message(chat_id=-1002173740967, 
                            text=LEXICON['taxi_order_form'].format(data["from_place"], data["to_place"]), 
-                           reply_parameters=ReplyParameters(message_id=message.message_id, chat_id=message.chat.id),
+                           reply_parameters=ReplyParameters(message_id=callback.message.message_id, chat_id=callback.from_user.id),
                            reply_markup=keyboards.conform_keyboard)
-    await message.answer(text=LEXICON['conforming_order'])
+    
+    await callback.answer(text=LEXICON['conforming_order'])
     await state.clear()
 
 #Хэндлер инициируюший продуктовый заказ

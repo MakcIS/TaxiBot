@@ -17,9 +17,9 @@ async def set_main_menu(bot: Bot):
 
 
 async def main():
-    settings = get_settings()
+    bot_config = get_settings().tg_bot
 
-    bot = Bot(settings.token)
+    bot = Bot(bot_config.token)
     dp = Dispatcher(storage=RedisStorage(redis=Redis()))
 
 
