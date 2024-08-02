@@ -4,18 +4,19 @@ from datetime import datetime
 
 db_config = get_settings().db_config
 
-async def get_driver_info(tg_id: int):
+async def get_driver_info(tg_id: int) -> dict:
     conn = await asyncpg.connect(database=db_config.database,
                                     user=db_config.user,
                                     password=db_config.password,
                                     port=db_config.port)
     
     result = await conn.fetchrow(f'SELECT * FROM taxi_bot_scheme.drivers WHERE telegram_id = {tg_id};')
+
     await conn.close()
-    return result
+    return dict(result.items())
 
 
-async def create_new_order(client_id: int, client_address: str, destination: str):
+async def create_new_order(client_id: int, client_address: str, destination: str) -> None:
     conn = await asyncpg.connect(database=db_config.database,
                                     user=db_config.user,
                                     password=db_config.password,

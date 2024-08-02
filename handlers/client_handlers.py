@@ -53,26 +53,27 @@ async def back_to_from(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text='Укажите откуда вас забрать:', reply_markup=keyboards.cancel_order_keyboard)
     await state.set_state(FSMOrderTaxiProcess.from_input)
 
-#Хэндлер фиксирующий адрес назначения и формирующий заказ с последующей передачей в чат водителей
+#Хэндлер фиксирующий адрес назначения и выводящий форму подтверждения заказа
 @router.message(StateFilter(FSMOrderTaxiProcess.to_input))
-async def to_input_process(message: Message, state: FSMContext, bot: Bot):
+async def to_input_process(message: Message, state: FSMContext):
     await state.update_data(to_place=message.text)
     data = await state.get_data()
     await message.answer(text=f'Проверьте правильность введённой информации:\nПоедем отсюда:{data["from_place"]}\nЕдем сюда:{data["to_place"]}', reply_markup=keyboards.cancel_back_conform_order_keyboard)
     await state.set_state(FSMOrderTaxiProcess.check_order_data)
 
-#
+#Хэндлер возвращающий к указанию пункта назначения
+@router.callback_query(StateFilter(FSMOrderTaxiProcess.check_order_data), F.data == 'back')
+async def back_to_from(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(text='Укажите куда поедите:', reply_markup=keyboards.cancel_back_order_keyboard)
+    await state.set_state(FSMOrderTaxiProcess.to_input)
+
+#Хэндлер срабатывающий на положительный ответ о заказе и отправляющий сообщение в чат водителей
 @router.callback_query(StateFilter(FSMOrderTaxiProcess.check_order_data), F.data == 'conform_order')
 async def check_order_process(callback: CallbackQuery, state: FSMContext, bot: Bot):    
     data = await state.get_data()
-
-    await create_new_order(client_id=callback.from_user.id,
-                           client_address=data['from_place'],
-                           destination=data['to_place'])
     
     await bot.send_message(chat_id=-1002173740967, 
-                           text=LEXICON['taxi_order_form'].format(data["from_place"], data["to_place"]), 
-                           reply_parameters=ReplyParameters(message_id=callback.message.message_id, chat_id=callback.from_user.id),
+                           text=LEXICON['taxi_order_form'].format(callback.from_user.id, data["from_place"], data["to_place"]), 
                            reply_markup=keyboards.conform_keyboard)
     
     await callback.answer(text=LEXICON['conforming_order'])

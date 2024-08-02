@@ -1,3 +1,4 @@
+import re
 from aiogram import Router, Bot, F
 from aiogram.types import (Message, CallbackQuery, BotCommand, Location)
 from aiogram.filters import CommandStart, Command
@@ -22,8 +23,9 @@ async def process_help(message: Message):
 
 @router.callback_query(F.data == 'conform_order')
 async def process_conform_order(callback: CallbackQuery, bot: Bot):
+    client_id = int(re.findall(r'ID-(\d+):', callback.message.text)[0])
     driver_info = await get_driver_info(callback.from_user.id)
-    await bot.send_message(chat_id=callback.message.external_reply.origin.sender_user.id, text=f'К вам выехал: {driver_info["name"]}\nАвтомобиль: {driver_info["car"]}\nЦвет: {driver_info["color"]}\nНомер: *{driver_info["licence_plate"]}**')
+    await bot.send_message(chat_id=client_id, text=f'К вам выехал: {driver_info["name"]}\nАвтомобиль: {driver_info["car"]}\nЦвет: {driver_info["color"]}\nНомер: *{driver_info["licence_plate"]}**')
     await callback.answer()
 
 @router.callback_query()
