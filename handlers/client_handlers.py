@@ -9,8 +9,9 @@ from aiogram.types import ReplyKeyboardRemove
 
 from keyboards import keyboards
 from lexicon.client_lexicon import LEXICON
-from db_logic.logic import create_new_order
+from db_logic import logic
 
+#Добавить обработку геометок и сделать так что бы во время заказа бот не принимал ничего кроме текста и геометок
 router = Router()
 
 @router.message(CommandStart())
@@ -67,15 +68,18 @@ async def back_to_from(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text='Укажите куда поедите:', reply_markup=keyboards.cancel_back_order_keyboard)
     await state.set_state(FSMOrderTaxiProcess.to_input)
 
-#Хэндлер срабатывающий на положительный ответ о заказе и отправляющий сообщение в чат водителей
+#Хэндлер срабатывающий на положительный ответ о заказе, создающий новый заказ в БД и отправляющий сообщение в чат водителей
 @router.callback_query(StateFilter(FSMOrderTaxiProcess.check_order_data), F.data == 'conform_order')
 async def check_order_process(callback: CallbackQuery, state: FSMContext, bot: Bot):    
     data = await state.get_data()
-    
+
+    order_id = await logic.create_new_order_and_return_order_id(client_id=callback.from_user.id,
+                                                          client_address=data['from_place'],
+                                                          destination=data['to_place'])
     await bot.send_message(chat_id=-1002173740967, 
-                           text=LEXICON['taxi_order_form'].format(callback.from_user.id, data["from_place"], data["to_place"]), 
+                           text=LEXICON['taxi_order_form'].format(order_id, data["from_place"], data["to_place"]), 
                            reply_markup=keyboards.conform_keyboard)
-    
+       
     await callback.answer(text=LEXICON['conforming_order'])
     await state.clear()
 

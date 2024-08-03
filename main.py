@@ -9,6 +9,7 @@ from config_data.settings import get_settings
 from handlers import client_handlers, driver_handlers
 
 
+
 async def set_main_menu(bot: Bot):
     commands = [BotCommand(command='/start', description='Погнали!'),
                 BotCommand(command='/help', description='Помощь')]
