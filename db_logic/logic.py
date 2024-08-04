@@ -48,12 +48,22 @@ async def get_order_info(order_id: int):
     return dict(result.items())
 
 #Функция добавляющяя id водителя к заказу в БД
-async def take_order(driver_id: int, client_id: int):
+async def take_order(driver_id: int, order_id: int) -> None:
     conn = await create_postgres_connect()
 
     await conn.execute(f'''UPDATE taxi_bot_scheme.orders
-                           SET driver_id={driver_id}, client_id=0, client_address='', destination='', start_time='', finish_time='', status=''
-                           WHERE id=0;''')
+                           SET driver_id={driver_id}, status='in progress'
+                           WHERE id={order_id};''')
+    await conn.close()
+
+async def order_done(order_id: int) -> None:
+    conn = await create_postgres_connect()
+
+    await conn.execute(f'''UPDATE taxi_bot_scheme.orders
+                           SET finish_time='{datetime.now()}', status='complete'
+                           WHERE id={order_id};''')
+    await conn.close()
+
 
 def add_id_in_redis(id: str|int):
     conn = create_redis_connect()

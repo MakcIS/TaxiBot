@@ -79,8 +79,8 @@ async def check_order_process(callback: CallbackQuery, state: FSMContext, bot: B
     await bot.send_message(chat_id=-1002173740967, 
                            text=LEXICON['taxi_order_form'].format(order_id, data["from_place"], data["to_place"]), 
                            reply_markup=keyboards.conform_keyboard)
-       
-    await callback.answer(text=LEXICON['conforming_order'])
+    await callback.message.answer(text=LEXICON['conforming_order'].format(order_id=order_id))
+    await callback.answer()  
     await state.clear()
 
 #Хэндлер инициируюший продуктовый заказ

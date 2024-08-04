@@ -9,3 +9,7 @@ class FSMOrderTaxiProcess(StatesGroup):
 class FSMOrderFoodProcess(StatesGroup):
     shopping_list = State()
     to_input = State()
+
+class FSMDriverOnOrder(StatesGroup):
+    on_order = State()
+    in_progress = State()
