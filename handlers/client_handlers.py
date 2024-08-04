@@ -10,6 +10,7 @@ from aiogram.types import ReplyKeyboardRemove
 from keyboards import keyboards
 from lexicon.client_lexicon import LEXICON
 from db_logic import logic
+from geo_location.geo_location import get_address
 
 #Добавить обработку геометок и сделать так что бы во время заказа бот не принимал ничего кроме текста и геометок
 router = Router()
@@ -42,7 +43,7 @@ async def car_order(message: Message, state: FSMContext):
     await state.set_state(FSMOrderTaxiProcess.from_input)
 
 #Хэндлер просящий ввести адрес назначения, и фиксирующий адрес клиента
-@router.message(StateFilter(FSMOrderTaxiProcess.from_input))
+@router.message(StateFilter(FSMOrderTaxiProcess.from_input), F.text)
 async def from_input_process(message: Message, state: FSMContext):
     await state.update_data(from_place=message.text)
     await message.answer(text='Укажите куда поедите:', reply_markup=keyboards.cancel_back_order_keyboard)
@@ -55,7 +56,7 @@ async def back_to_from(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMOrderTaxiProcess.from_input)
 
 #Хэндлер фиксирующий адрес назначения и выводящий форму подтверждения заказа
-@router.message(StateFilter(FSMOrderTaxiProcess.to_input))
+@router.message(StateFilter(FSMOrderTaxiProcess.to_input), F.text)
 async def to_input_process(message: Message, state: FSMContext):
     await state.update_data(to_place=message.text)
     data = await state.get_data()
@@ -113,6 +114,12 @@ async def conform_food_order(message: Message, state: FSMContext, bot: Bot):
     await message.answer(text=LEXICON['conforming_order'])
     await state.clear()
 
+#Тестовый хэндлер удалить после
+@router.message(F.location)
+async def cache_location(message: Message):
+    print(await get_address(message.location.latitude, message.location.longitude))
+
+#Тестовый хэндлер удалить после
 @router.message()
 async def out_chat(message: Message):
     await message.send_copy(chat_id=message.chat.id)

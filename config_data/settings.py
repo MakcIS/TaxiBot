@@ -15,11 +15,17 @@ class DataBaseConfig:
     password: str
     port: str | int
 
+@dataclass
+class DaDataConfig:
+    token: str
 
 @dataclass
 class Settings:
     tg_bot: TgBot
     db_config: DataBaseConfig
+    dadata: DaDataConfig
+
+
 
 
 def get_settings():
@@ -28,4 +34,5 @@ def get_settings():
                     db_config=DataBaseConfig(database=env('DB_NAME'),
                                              user=env('DB_USER'),
                                              password=env('DB_PASSWORD'),
-                                             port=env('DB_PORT')))
+                                             port=env('DB_PORT')),
+                    dadata=DaDataConfig(env('DADATA_TOKEN')))

@@ -26,6 +26,10 @@ async def process_start_in_driver_chat(message: Message):
 async def process_help(message: Message):
     await message.answer(text=LEXICON['/help'])
 
+@router.message(Command(commands='cancel'))
+async def process_cancel(message: Message, state: FSMContext):
+    await state.clear()
+
 #Хэндлер обрабатывающий согласие водителя на заказ, с добавлением в БД id водителя к заказу 
 #И отправляющий сообщение клиенту с данными водителя
 @router.callback_query(StateFilter(default_state), F.data == 'conform_order')
@@ -56,8 +60,8 @@ async def process_conform_order(callback: CallbackQuery, bot: Bot, state: FSMCon
                             surname=driver_info["surname"])
     await callback.answer()
 
-#Хэндлер реагирующий на нажатие кнопки я поъехал, сообщаяя об этом клиенту
-@router.callback_query(StateFilter(FSMDriverOnOrder.on_order, F.data == 'car_waiting'))
+#Хэндлер реагирующий на нажатие кнопки я подъехал, сообщаяя об этом клиенту
+@router.callback_query(StateFilter(FSMDriverOnOrder.on_order), F.data == 'car_waiting')
 async def car_waiting_process(callback: CallbackQuery, bot: Bot, state: FSMContext):
     data = await state.get_data()
     if callback.message.message_id == data['message_id']:

@@ -12,7 +12,8 @@ from handlers import client_handlers, driver_handlers
 
 async def set_main_menu(bot: Bot):
     commands = [BotCommand(command='/start', description='Погнали!'),
-                BotCommand(command='/help', description='Помощь')]
+                BotCommand(command='/help', description='Помощь'),
+                BotCommand(command='/cancel', description='Отменяет текущие заказы')]
     await bot.delete_my_commands()
     await bot.set_my_commands(commands)
 
