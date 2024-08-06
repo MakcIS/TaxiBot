@@ -11,6 +11,7 @@ from lexicon.driver_lexicon import LEXICON
 from db_logic.logic import get_driver_info, take_order, get_order_info, order_done
 
 #Продумать логику отказа водителем от заказа
+#Добавить хендлер который будет обрабатывать нажатия на инлайн кнопки под заказами, когда водитель не на заказе
 
 router = Router()
 router.message.filter(F.chat.id == -1002173740967)
