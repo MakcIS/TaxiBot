@@ -13,3 +13,6 @@ class FSMOrderFoodProcess(StatesGroup):
 class FSMDriverOnOrder(StatesGroup):
     on_order = State()
     in_progress = State()
+
+class FSMAdminMode(StatesGroup):
+    in_mode = StatesGroup()

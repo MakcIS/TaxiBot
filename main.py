@@ -3,10 +3,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery, BotCommand
 from aiogram.filters import CommandStart
 from aiogram.fsm.storage.redis import Redis, RedisStorage 
-
+from aiogram.types.bot_command_scope_chat import BotCommandScopeChat
 
 from config_data.settings import get_settings
-from handlers import client_handlers, driver_handlers
+from handlers import client_handlers, driver_handlers, admin_handlers
 
 
 
@@ -26,6 +26,7 @@ async def main():
 
 
     dp.startup.register(set_main_menu)
+    dp.include_router(admin_handlers.router)
     dp.include_router(driver_handlers.router)
     dp.include_router(client_handlers.router)
 

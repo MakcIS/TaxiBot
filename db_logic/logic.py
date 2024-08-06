@@ -19,7 +19,7 @@ async def _create_postgres_connect():
 async def get_driver_info(tg_id: int) -> dict:
     conn = await _create_postgres_connect()
     
-    result = await conn.fetchrow(f'SELECT * FROM taxi_bot_scheme.drivers WHERE telegram_id = {tg_id};')
+    result = await conn.fetchrow('SELECT * FROM taxi_bot_scheme.drivers WHERE telegram_id = $1;', tg_id)
 
     await conn.close()
     return dict(result.items())
@@ -29,12 +29,14 @@ async def create_new_order_and_return_order_id(client_id: int, client_address: s
     conn = await _create_postgres_connect()
     start_time = datetime.now()
 
-    await conn.execute(f'''INSERT INTO taxi_bot_scheme.orders (client_id, client_address, destination, start_time, status) 
-                           VALUES ({client_id}, '{client_address}', '{destination}', '{start_time}', 'waiting driver');''')
+    await conn.execute('''INSERT INTO taxi_bot_scheme.orders (client_id, client_address, destination, start_time, status) 
+                           VALUES ($1, $2, $3, $4, 'waiting driver');''', 
+                           client_id, client_address, destination, start_time)
 
-    order_id = await conn.fetchrow(f'''SELECT id 
+    order_id = await conn.fetchrow('''SELECT id 
                                        FROM taxi_bot_scheme.orders 
-                                       WHERE client_id={client_id} AND start_time='{start_time}' AND status='waiting driver';''')
+                                       WHERE client_id=$1 AND start_time=$2 AND status='waiting driver';''',
+                                       client_id, start_time)
     await conn.close()
     return order_id['id']
 
@@ -42,7 +44,7 @@ async def create_new_order_and_return_order_id(client_id: int, client_address: s
 async def get_order_info(order_id: int):
     conn = await _create_postgres_connect()
 
-    result = await conn.fetchrow(f'SELECT * FROM taxi_bot_scheme.orders WHERE id = {order_id};')
+    result = await conn.fetchrow('SELECT * FROM taxi_bot_scheme.orders WHERE id = $1;', order_id)
 
     await conn.close()
     return dict(result.items())
@@ -51,18 +53,18 @@ async def get_order_info(order_id: int):
 async def take_order(driver_id: int, order_id: int) -> None:
     conn = await _create_postgres_connect()
 
-    await conn.execute(f'''UPDATE taxi_bot_scheme.orders
-                           SET driver_id={driver_id}, status='in progress'
-                           WHERE id={order_id};''')
+    await conn.execute('''UPDATE taxi_bot_scheme.orders
+                           SET driver_id=$1, status='in progress'
+                           WHERE id=$2;''', driver_id, order_id)
     await conn.close()
 
 #Функция закрывающяя заказ
 async def order_done(order_id: int) -> None:
     conn = await _create_postgres_connect()
 
-    await conn.execute(f'''UPDATE taxi_bot_scheme.orders
-                           SET finish_time='{datetime.now()}', status='complete'
-                           WHERE id={order_id};''')
+    await conn.execute('''UPDATE taxi_bot_scheme.orders
+                           SET finish_time=$2, status='complete'
+                           WHERE id=$1;''', order_id, datetime.now())
     await conn.close()
 
 #Функция возвращающяя список администраторов
@@ -71,7 +73,8 @@ async def get_admins_list() -> list:
 
     result = await conn.fetch('''SELECT telegram_id
                                  FROM taxi_bot_scheme.admins_list;''')
-    print(result)
+    
+    return [value for record in result for value in record.values()]
 
 
 
