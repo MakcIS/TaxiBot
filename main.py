@@ -7,6 +7,7 @@ from aiogram.types.bot_command_scope_chat import BotCommandScopeChat
 
 from config_data.settings import get_settings
 from handlers import client_handlers, driver_handlers, admin_handlers
+from db_logic.logic import admin_list_from_pg_to_redis, taxi_is_close
 
 
 
@@ -24,7 +25,8 @@ async def main():
     bot = Bot(bot_config.token)
     dp = Dispatcher(storage=RedisStorage(redis=Redis()))
 
-
+    await admin_list_from_pg_to_redis()
+    taxi_is_close()
     dp.startup.register(set_main_menu)
     dp.include_router(admin_handlers.router)
     dp.include_router(driver_handlers.router)

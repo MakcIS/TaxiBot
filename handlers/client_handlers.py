@@ -11,6 +11,7 @@ from keyboards import keyboards
 from lexicon.client_lexicon import LEXICON
 from db_logic import logic
 from geo_location.geo_location import get_address
+from filters.filters import IsClosed
 
 #Добавить обработку геометок и сделать так что бы во время заказа бот не принимал ничего кроме текста и геометок
 router = Router()
@@ -23,6 +24,18 @@ async def process_start(message: Message):
 @router.message(Command(commands='help'))
 async def process_help(message: Message):
     await message.answer(text=LEXICON['/help'])
+
+#Хэндлер перехватывающий сообщения, когда такси закрыто
+@router.message(IsClosed())
+async def message_is_closed(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON['taxi_closed'])
+    await state.clear()
+    
+#Хэндлер перехватывающий коллбэки, когда такси закрыто
+@router.callback_query(IsClosed())
+async def callback_is_closed(callback: CallbackQuery, state: FSMContext):
+    await callback.answer(text=LEXICON['taxi_closed'])
+    await state.clear()
 
 #Хэндлер реагирующий на попытку совершить заказ во время оформления заказа
 @router.message(~StateFilter(default_state), F.text.in_(['Заказать такси', 'Продуктовый заказ']))

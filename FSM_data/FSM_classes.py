@@ -15,4 +15,4 @@ class FSMDriverOnOrder(StatesGroup):
     in_progress = State()
 
 class FSMAdminMode(StatesGroup):
-    in_mode = StatesGroup()
+    in_mode = State()
