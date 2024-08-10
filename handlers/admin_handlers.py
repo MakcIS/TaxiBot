@@ -15,8 +15,8 @@ from lexicon.admin_lexicon import LEXICON
 from keyboards import admin_keyboards
 
 router = Router()
-router.message.filter(IsAdmin())
-router.callback_query.filter(IsAdmin())
+router.message.filter(IsAdmin(), F.chat.id != -1002173740967)
+router.callback_query.filter(IsAdmin(), F.message.chat.id != -1002173740967)
 
 #Хэндлер на команду старт
 @router.message(CommandStart())
