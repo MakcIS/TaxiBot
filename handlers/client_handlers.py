@@ -44,9 +44,12 @@ async def incorrect(message: Message):
 
 #Хэндлер прерывающий процесс заказа
 @router.callback_query(~StateFilter(default_state), F.data == 'cancel_order')
-async def cancel_order(callback: CallbackQuery, state: FSMContext):
+async def cancel_order(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await callback.message.answer(text=LEXICON['cancel_order'])
     await callback.answer()
+
+    data = await state.get_data()
+    await bot.delete_messages(chat_id=callback.from_user.id, message_ids=[*range(data['start_message_id'], callback.message.message_id + 1)])
     await state.clear()
 
 #Хэндлер инициирующий процедуру заказа такси
@@ -54,6 +57,7 @@ async def cancel_order(callback: CallbackQuery, state: FSMContext):
 async def car_order(message: Message, state: FSMContext):
     await message.answer(text='Укажите откуда вас забрать:', reply_markup=keyboards.cancel_order_keyboard)
     await state.set_state(FSMOrderTaxiProcess.from_input)
+    await state.update_data(start_message_id=message.message_id)
 
 #Хэндлер просящий ввести адрес назначения, и фиксирующий адрес клиента
 @router.message(StateFilter(FSMOrderTaxiProcess.from_input), F.text)
@@ -73,7 +77,7 @@ async def back_to_from(callback: CallbackQuery, state: FSMContext):
 async def to_input_process(message: Message, state: FSMContext):
     await state.update_data(to_place=message.text)
     data = await state.get_data()
-    await message.answer(text=f'Проверьте правильность введённой информации:\nПоедем отсюда:{data["from_place"]}\nЕдем сюда:{data["to_place"]}', reply_markup=keyboards.cancel_back_conform_order_keyboard)
+    await message.answer(text=LEXICON['check_order_data'].format(frm=data['from_place'], to=data['to_place']), reply_markup=keyboards.cancel_back_conform_order_keyboard, parse_mode="HTML")
     await state.set_state(FSMOrderTaxiProcess.check_order_data)
 
 #Хэндлер возвращающий к указанию пункта назначения
@@ -93,7 +97,9 @@ async def check_order_process(callback: CallbackQuery, state: FSMContext, bot: B
     await bot.send_message(chat_id=-1002173740967, 
                            text=LEXICON['taxi_order_form'].format(order_id, data["from_place"], data["to_place"]), 
                            reply_markup=keyboards.conform_keyboard)
-    await callback.message.answer(text=LEXICON['conforming_order'].format(order_id=order_id))
+    
+    await callback.message.answer(text=LEXICON['conforming_order'].format(order_id=order_id, frm=data['from_place'], to=data['to_place']), parse_mode="HTML")
+    await bot.delete_messages(chat_id=callback.from_user.id, message_ids=[*range(data['start_message_id'], callback.message.message_id + 1)])
     await callback.answer()  
     await state.clear()
 

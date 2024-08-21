@@ -12,7 +12,7 @@ from filters.filters import IsAdmin
 from FSM_data.FSM_classes import FSMAdminMode
 from db_logic.logic import switcher_taxi_status, get_taxi_status
 from lexicon.admin_lexicon import LEXICON
-from keyboards import admin_keyboards
+from keyboards import admin_keyboards, keyboards
 
 router = Router()
 router.message.filter(IsAdmin(), F.chat.id != -1002173740967)
@@ -21,7 +21,7 @@ router.callback_query.filter(IsAdmin(), F.message.chat.id != -1002173740967)
 #Хэндлер на команду старт
 @router.message(CommandStart())
 async def admin_start_process(message:Message):
-    await message.answer(text=LEXICON['start'])
+    await message.answer(text=LEXICON['start'], reply_markup=keyboards.order_keyboard)
     
 #Хэндлер на помощь вне режима Администратора
 @router.message(Command(commands='help'), StateFilter(default_state))
