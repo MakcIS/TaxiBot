@@ -5,9 +5,7 @@ from config_data import settings
 
 db_conf = settings.get_settings().db_config
 
-DB_URL = f"postgresql+asyncpg://{db_conf.user}:{db_conf.password}@db:{db_conf.port}/{db_conf.database}"
-
-engine = create_async_engine(DB_URL, echo=True)
+engine = create_async_engine(db_conf.db_url, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 async def init_db():

@@ -14,6 +14,7 @@ class DataBaseConfig:
     user: str
     password: str
     port: str | int
+    db_url: str
 
 @dataclass
 class DaDataConfig:
@@ -34,5 +35,7 @@ def get_settings():
                     db_config=DataBaseConfig(database=env('DB_NAME'),
                                              user=env('DB_USER'),
                                              password=env('DB_PASSWORD'),
-                                             port=env('DB_PORT')),
+                                             port=env('DB_PORT'),
+                                             db_url = f'postgresql+asyncpg://{env('DB_USER')}:{env('DB_PASSWORD')}@db:{env('DB_PORT')}/{env('DB_NAME')}',
+                                             ),
                     dadata=DaDataConfig(env('DADATA_TOKEN')))
